@@ -3,8 +3,6 @@ import com.eclipsetrading.javatest.movingaverage.api.MovingAverageStoreImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.IntStream;
 
 public class MovingAverageStoreImplTest {
