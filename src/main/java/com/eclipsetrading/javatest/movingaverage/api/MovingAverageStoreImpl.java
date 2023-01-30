@@ -4,15 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * The moving average store has a concurrent hash map to enable multiple producers to update its own evicting moving average queue concurrently
+ * EvictingMovingAverage queue eagerly maintains the currSum so that the getMovingAverage as well as getMovingAverages can be computed very efficiently.
+ * The underlying thought process is that the frequency of consumers trying to getMovingAverage and getMovingAverages
+ * is almost proportional to the frequency of multiple producers maintaining the moving average. Given maintaining the currAvg is not very intensive operation it helps to speed up consumer.
+ * If however there is a use case that the producer is exponentially faster and the consumer very occasionally calls getMovingAverage or getMovingAverages() then it makes sense for the consumer to lazily compute it in which
+ * case the producer is relieved of that additional maintenance.
+ */
 public class MovingAverageStoreImpl implements MovingAverageStore {
     private final int size;
-    private final Map<String, LinkedBlockingDeque<Double>> movingAverageMap;
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
+    private final Map<String, EvictingMovingAverageQueue<Double>> movingAverageMap;
     public MovingAverageStoreImpl(int size) {
         this.size             = size;
         this.movingAverageMap = new ConcurrentHashMap<>(size);
@@ -21,33 +24,19 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
     @Override
     public void addSample(String producer, double value) {
         Objects.requireNonNull(producer);
-        readWriteLock.writeLock().lock();
-        if (movingAverageMap.containsKey(producer)) {
-            LinkedBlockingDeque<Double> values = movingAverageMap.get(producer);
-            if (values.size() < size) {
-                values.add(value);
-            } else {
-                double firstValue = values.peekFirst();
-                values.removeFirst();
-                values.add(value);
-            }
-        } else {
-            LinkedBlockingDeque<Double> queue = new LinkedBlockingDeque<>(size);
-            queue.add(value);
-            movingAverageMap.put(producer, queue);
-        }
-        readWriteLock.writeLock().unlock();
+        movingAverageMap.computeIfAbsent(producer, k->new EvictingMovingAverageQueue<>(size)).offer(value);
     }
 
     @Override
     public double getMovingAverage(String producer) {
-        return movingAverageMap.get(producer).stream().mapToDouble(a -> a).average().stream().findFirst().orElse(0d);
+        Objects.requireNonNull(producer);
+        return movingAverageMap.get(producer).getCurrMovingAverage();
     }
 
     @Override
     public Map<String, Double> getMovingAverages() {
         Map<String, Double> snapshotMovingAverages = new HashMap<>();
-        movingAverageMap.forEach((k, v) -> snapshotMovingAverages.put(k, getMovingAverage(k)));
+        movingAverageMap.forEach((k,v)-> snapshotMovingAverages.put(k,v.getCurrMovingAverage()));
         return snapshotMovingAverages;
     }
 }
