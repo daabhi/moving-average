@@ -53,20 +53,23 @@ public class MovingAverageStoreImplTest {
 
         Thread p1 = new Thread(() -> movingAverageStore.addSample("P1", 1.0));
         Thread p2 = new Thread(() -> movingAverageStore.addSample("P2", 2.0));
+        p1.start();
+        p2.start();
+        p1.join();
+        p2.join();
         Thread c1 = new Thread(() -> Assertions.assertEquals("{P1=1.0, P2=2.0}",movingAverageStore.getMovingAverages().toString()));
         Thread c2 = new Thread(() -> Assertions.assertEquals(1,movingAverageStore.getMovingAverage("P1")));
         Thread c3 = new Thread(() -> Assertions.assertEquals(2,movingAverageStore.getMovingAverage("P2")));
+        Thread c4 = new Thread(() -> Assertions.assertEquals("{P1=1.0, P2=2.0}",movingAverageStore.getMovingAverages().toString()));
 
-        p1.start();
-        p2.start();
         c1.start();
         c2.start();
         c3.start();
+        c4.start();
 
-        p1.join(1000);
-        p2.join(1000);
-        c1.join(1000);
-        c2.join(1000);
-        c3.join(1000);
+        c1.join();
+        c2.join();
+        c3.join();
+        c4.join();
     }
 }
