@@ -1,5 +1,8 @@
 package com.eclipsetrading.javatest.movingaverage.api;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * case the producer is relieved of that additional maintenance.
  */
 public class MovingAverageStoreImpl implements MovingAverageStore {
+    private static final Logger logger = LogManager.getLogger(MovingAverageStoreImpl.class.getSimpleName());
     private final int size;
     private final Map<String, EvictingMovingAverageQueue<Double>> movingAverageMap;
     public MovingAverageStoreImpl(int size) {
@@ -31,7 +35,9 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
     public double getMovingAverage(String producer) {
         if (producer == null) return Double.NaN;
         if (movingAverageMap.containsKey(producer)) {
-            return movingAverageMap.get(producer).getCurrMovingAverage();
+            double movingAverage= movingAverageMap.get(producer).getCurrMovingAverage();
+            logger.info("Producer="+ producer+ " movingAverage="+movingAverage);
+            return movingAverage;
         }else{
             return Double.NaN;
         }
@@ -41,6 +47,7 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
     public Map<String, Double> getMovingAverages() {
         Map<String, Double> snapshotMovingAverages = new HashMap<>();
         movingAverageMap.forEach((k,v)-> snapshotMovingAverages.put(k,v.getCurrMovingAverage()));
+        logger.info("Current Moving Averages ="+ snapshotMovingAverages);
         return snapshotMovingAverages;
     }
 }
