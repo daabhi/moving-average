@@ -8,10 +8,11 @@ public class EvictingMovingAverageQueue<T> {
     private int size = 0;
     private final int capacity;
     private double currSum;
-    private final LinkedBlockingDeque<Double> queue = new LinkedBlockingDeque<>();
+    private final LinkedBlockingDeque<Double> queue;
     private final Lock lock = new ReentrantLock();
     public EvictingMovingAverageQueue(int capacity){
-        this.capacity =capacity;
+        this.capacity = capacity;
+        this.queue    = new LinkedBlockingDeque<>(capacity);
     }
 
     public void offer(double value){
