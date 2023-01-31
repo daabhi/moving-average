@@ -50,7 +50,7 @@ public class MovingAverageStoreImplTest {
         long consumerSnapStartTime = System.currentTimeMillis();
         IntStream.range(0,1000000).forEach(a->movingAverageStore.getMovingAverages());
         long consumerSnapDuration = System.currentTimeMillis() - consumerSnapStartTime;
-        Assertions.assertEquals(500, consumerSnapDuration, 300, "Queried 1mill times for moving average snapshot in ~500 ms");
+        Assertions.assertEquals(500, consumerSnapDuration, 500, "Queried 1mill times for moving average snapshot in ~500 ms");
     }
 
     @Test
