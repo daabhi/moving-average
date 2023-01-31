@@ -29,8 +29,12 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
 
     @Override
     public double getMovingAverage(String producer) {
-        Objects.requireNonNull(producer);
-        return movingAverageMap.get(producer).getCurrMovingAverage();
+        if (producer == null) return Double.NaN;
+        if (movingAverageMap.containsKey(producer)) {
+            return movingAverageMap.get(producer).getCurrMovingAverage();
+        }else{
+            return Double.NaN;
+        }
     }
 
     @Override

@@ -6,10 +6,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class EvictingMovingAverageQueue<T> {
     private int size = 0;
-    private int capacity;
+    private final int capacity;
     private double currSum;
-    private LinkedBlockingDeque<Double> queue = new LinkedBlockingDeque<>();
-    private Lock lock = new ReentrantLock();
+    private final LinkedBlockingDeque<Double> queue = new LinkedBlockingDeque<>();
+    private final Lock lock = new ReentrantLock();
     public EvictingMovingAverageQueue(int capacity){
         this.capacity =capacity;
     }

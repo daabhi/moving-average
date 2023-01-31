@@ -19,6 +19,21 @@ public class MovingAverageStoreImplTest {
         Assertions.assertEquals(3, movingAverageStore.getMovingAverage("P2"));
         Assertions.assertEquals("{P1=2.0, P2=3.0}", movingAverageStore.getMovingAverages().toString());
     }
+
+    @Test
+    public void testProducerNotFoundWhenSearchingMovingAverage(){
+        MovingAverageStore movingAverageStore = new MovingAverageStoreImpl(100);
+        movingAverageStore.addSample("P1",1.0d);
+        Assertions.assertEquals(Double.NaN, movingAverageStore.getMovingAverage("P2"));
+        Assertions.assertEquals(Double.NaN, movingAverageStore.getMovingAverage(null));
+    }
+    @Test
+    public void testEmptyWhenSearchingMovingAverage(){
+        MovingAverageStore movingAverageStore = new MovingAverageStoreImpl(100);
+        Assertions.assertEquals(Double.NaN, movingAverageStore.getMovingAverage("P2"));
+        Assertions.assertEquals(Double.NaN, movingAverageStore.getMovingAverage(null));
+        Assertions.assertEquals("{}", movingAverageStore.getMovingAverages().toString());
+    }
     @Test
     public void testEvictionAfterSizeBreached(){
         MovingAverageStore movingAverageStore = new MovingAverageStoreImpl(100);
