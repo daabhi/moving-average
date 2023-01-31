@@ -1,11 +1,25 @@
 import com.eclipsetrading.javatest.movingaverage.api.MovingAverageStore;
 import com.eclipsetrading.javatest.movingaverage.api.MovingAverageStoreImpl;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.IntStream;
 
 public class MovingAverageStoreImplTest {
+    @BeforeAll
+    public static void setup(){
+        List<Logger> loggers = Collections.<Logger>list(LogManager.getCurrentLoggers());
+        loggers.add(LogManager.getRootLogger());
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.OFF);
+        }
+    }
     @Test
     public void testBasicReturnsMovingAverageWithWhateverIsThereIfLessThanConfiguredSize(){
         MovingAverageStore movingAverageStore = new MovingAverageStoreImpl(100);
@@ -18,6 +32,25 @@ public class MovingAverageStoreImplTest {
         Assertions.assertEquals(2, movingAverageStore.getMovingAverage("P1"));
         Assertions.assertEquals(3, movingAverageStore.getMovingAverage("P2"));
         Assertions.assertEquals("{P1=2.0, P2=3.0}", movingAverageStore.getMovingAverages().toString());
+    }
+
+    @Test
+    public void testPerformance(){
+        MovingAverageStore movingAverageStore = new MovingAverageStoreImpl(100);
+        long startTime = System.currentTimeMillis();
+        IntStream.range(0,1000000).forEach(a-> movingAverageStore.addSample("P1",a));
+        long duration = System.currentTimeMillis()-startTime;
+        Assertions.assertEquals(400, duration, 400, "Inserted 1mill records for moving average in ~400 ms");
+
+        long consumerStartTime = System.currentTimeMillis();
+        IntStream.range(0,1000000).forEach(a->movingAverageStore.getMovingAverage("P1"));
+        long consumerDuration = System.currentTimeMillis() - consumerStartTime;
+        Assertions.assertEquals(100, consumerDuration, 100, "Queried 1mill times for moving average in ~200 ms");
+
+        long consumerSnapStartTime = System.currentTimeMillis();
+        IntStream.range(0,1000000).forEach(a->movingAverageStore.getMovingAverages());
+        long consumerSnapDuration = System.currentTimeMillis() - consumerSnapStartTime;
+        Assertions.assertEquals(500, consumerSnapDuration, 300, "Queried 1mill times for moving average snapshot in ~500 ms");
     }
 
     @Test

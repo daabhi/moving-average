@@ -35,9 +35,7 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
     public double getMovingAverage(String producer) {
         if (producer == null) return Double.NaN;
         if (movingAverageMap.containsKey(producer)) {
-            double movingAverage= movingAverageMap.get(producer).getCurrMovingAverage();
-            logger.info("Producer="+ producer+ " movingAverage="+movingAverage);
-            return movingAverage;
+            return movingAverageMap.get(producer).getCurrMovingAverage();
         }else{
             return Double.NaN;
         }
@@ -47,7 +45,6 @@ public class MovingAverageStoreImpl implements MovingAverageStore {
     public Map<String, Double> getMovingAverages() {
         Map<String, Double> snapshotMovingAverages = new HashMap<>();
         movingAverageMap.forEach((k,v)-> snapshotMovingAverages.put(k,v.getCurrMovingAverage()));
-        logger.info("Current Moving Averages ="+ snapshotMovingAverages);
         return snapshotMovingAverages;
     }
 }
